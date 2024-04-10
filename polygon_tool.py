@@ -25,6 +25,9 @@ BG_CLR_TEXT = "CONFIG['bg_color']"
 OUTPUT_PREFIX = "my_shape = (\n"
 OUTPUT_SUFFIX = INDENTATION + ")"
 
+COORD_PREFIX = "array.array('h', "
+COORD_SUFFIX = ')'
+
 UI_COLOR = 0
 BG_COLOR = 1
 
@@ -379,7 +382,7 @@ def format_print_shape():
             
             clr_txt = UI_CLR_TEXT if item['color'] == UI_COLOR else BG_CLR_TEXT
             
-            coords_txt = str(item['coords']).replace('[','(').replace(']',')').replace(' ','')
+            coords_txt = COORD_PREFIX + str(item['coords']).replace('[','(').replace(']',')').replace(' ','') + COORD_SUFFIX
             
             output += INDENTATION
             output += f"({OFFSET_X},{OFFSET_Y}, {coords_txt}, {clr_txt}, {item['fill']}),\n"
