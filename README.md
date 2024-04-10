@@ -7,4 +7,6 @@ All this does, is provide a GUI for drawing polygons with the mouse, and it outp
 
 The GUI includes a few simple config options, but there are more options at the top of the script, which you should take a look at if the defaults arent good for you :)
 
-This tool requires tkinter and Pillow.
+### Usage:
+Install Python3, Pillow, and Tkinter. if they arent already.   
+Run the script!
