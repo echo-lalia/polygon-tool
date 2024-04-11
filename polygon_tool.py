@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.filedialog
 from PIL import Image, ImageTk, ImageDraw
 
 """
@@ -34,6 +35,8 @@ BG_COLOR = 1
 OFFSET_X = 0
 OFFSET_Y = 0
 
+TRACE_ALPHA = 100
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 DEFAULT_ACTION = {
     "name":"poly",
@@ -53,6 +56,10 @@ WINDOW = tk.Tk()
 CANVAS_IMG = None
 PHOTO_IMG = ImageTk.PhotoImage(image='RGB', size=(CANVAS_WIDTH,CANVAS_HEIGHT))
 DRAW = ImageDraw.Draw(IMAGE)
+
+BG_IMAGE = None
+BG_PHOTO_IMAGE = None
+CANVAS_BG_IMG = None
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TKINTER OBJECTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -140,7 +147,7 @@ for i in range(0,8):
     OPTIONS_FRAME.columnconfigure(i, weight=1, minsize=24)
 
 def handle_update_options(event):
-    global PX_SIZE, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT, PHOTO_IMG, CANVAS_IMG, IMAGE, DRAW
+    global PX_SIZE, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT, PHOTO_IMG, CANVAS_IMG, IMAGE, DRAW, BG_PHOTO_IMAGE, CANVAS_BG_IMG
     if event.keysym == 'Return':
         try:
             PX_SIZE = int(PX_SIZE_ENTRY.get())
@@ -184,6 +191,41 @@ PX_SIZE_ENTRY.bind("<Key>", handle_update_options)
 WIDTH_ENTRY.bind("<Key>", handle_update_options)
 HEIGHT_ENTRY.bind("<Key>", handle_update_options)
 
+
+
+def open_file_dialog(event):
+    file_path = tk.filedialog.askopenfilename(title="Select an image file", filetypes=[("All files", "*.*")])
+    if file_path:
+        print(file_path)
+        open_image_file(file_path)
+    handle_update_options(event)
+
+def open_image_file(file_path):
+    global BG_IMAGE
+    BG_IMAGE = Image.open(file_path).convert('RGBA')
+
+def clear_image(event):
+    global BG_IMAGE
+    BG_IMAGE = None
+    handle_update_options(event)
+
+OPEN_IMAGE_LABEL = tk.Label(
+    master=OPTIONS_FRAME,
+    text='Trace image:',
+)
+OPEN_IMAGE_BUTTON = tk.Button(
+    master=OPTIONS_FRAME,
+    text='Open',
+)
+CLEAR_IMAGE_BUTTON = tk.Button(
+    master=OPTIONS_FRAME,
+    text='Clear',
+)
+OPEN_IMAGE_LABEL.grid(column=8, row=0)
+OPEN_IMAGE_BUTTON.grid(column=9, row=0)
+CLEAR_IMAGE_BUTTON.grid(column=10, row=0)
+OPEN_IMAGE_BUTTON.bind("<Button>", open_file_dialog)
+CLEAR_IMAGE_BUTTON.bind("<Button>", clear_image)
 
 # MAIN BUTTONS
 
@@ -355,7 +397,7 @@ def rule_lines():
                 CANVAS_WIDTH,
                 y*PX_SIZE,
             ),
-            fill="Gray"
+            fill="Gray" if y % 4 == 0 else "Lavender"
         )
     for x in range(WIDTH):
         CANVAS.create_line(
@@ -365,7 +407,7 @@ def rule_lines():
                 x*PX_SIZE,
                 CANVAS_HEIGHT,
             ),
-            fill="Gray"
+            fill="Gray" if x % 4 == 0 else "Lavender"
         )
 
 def gui_print(text):
@@ -445,7 +487,16 @@ def draw_image_on_canvas():
                     outline= item['color']
             )
 
-    PHOTO_IMG.paste(IMAGE.resize((CANVAS_WIDTH,CANVAS_HEIGHT)))
+
+    img = Image.new('RGBA', (CANVAS_WIDTH, CANVAS_HEIGHT))
+    img.paste(IMAGE.resize((CANVAS_WIDTH, CANVAS_HEIGHT)))
+
+    if BG_IMAGE:
+        bg = BG_IMAGE.resize((CANVAS_WIDTH, CANVAS_HEIGHT))
+        bg.putalpha(TRACE_ALPHA)
+        img.alpha_composite(bg)
+
+    PHOTO_IMG.paste(img)
 
 
 
