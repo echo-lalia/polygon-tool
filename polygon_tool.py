@@ -52,7 +52,14 @@ CURRENT_ACTION = DEFAULT_ACTION.copy()
 
 
 IMAGE = Image.new(mode='1', size=(WIDTH,HEIGHT), color=1)
+
 WINDOW = tk.Tk()
+WINDOW.title('Polygon Tool')
+WINDOW.columnconfigure(0, weight=1)
+WINDOW.columnconfigure(1, weight=10)
+WINDOW.rowconfigure([0,1], weight=1)
+WINDOW.rowconfigure([2,3], weight=2)
+
 CANVAS_IMG = None
 PHOTO_IMG = ImageTk.PhotoImage(image='RGB', size=(CANVAS_WIDTH,CANVAS_HEIGHT))
 DRAW = ImageDraw.Draw(IMAGE)
@@ -61,42 +68,51 @@ BG_IMAGE = None
 BG_PHOTO_IMAGE = None
 CANVAS_BG_IMG = None
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TKINTER OBJECTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+STICKY_ALL = tk.E + tk.W + tk.N + tk.S
 
-title = tk.Label(
-    text="Polygon Maker",
-    width=50)
-title.pack()
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TKINTER OBJECTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 OPTIONS_FRAME = tk.Frame(
     master=WINDOW,
+#    bg='RED',
+
 )
-OPTIONS_FRAME.pack()
+OPTIONS_FRAME.columnconfigure(list(range(10)), weight=1, minsize=1)
+OPTIONS_FRAME.columnconfigure([3,9], weight=10) # prevent options from being spread out on large windows
+OPTIONS_FRAME.rowconfigure([0,1], weight=1)
+OPTIONS_FRAME.grid(column=0, row=0, columnspan=2, sticky=tk.N+tk.E+tk.W)
 
 PIXEL_FRAME = tk.Frame(
     master=WINDOW,
     borderwidth=5,
-    relief=tk.RAISED
+    relief=tk.RAISED,
 )
-PIXEL_FRAME.pack(side=tk.LEFT)
+PIXEL_FRAME.grid(column=0, row=2, rowspan=2)
+PIXEL_FRAME.columnconfigure(0, minsize=max(CANVAS_HEIGHT, CANVAS_WIDTH))
 
-CONTROL_FRAME = tk.Frame(
-    master=WINDOW,
-    borderwidth=5,
-)
-CONTROL_FRAME.pack(side=tk.RIGHT)
+# CONTROL_FRAME = tk.Frame(
+#     master=WINDOW,
+#     borderwidth=5,
+#     bg='BLUE'
+# )
+#CONTROL_FRAME.grid(column=1, row=1, rowspan=3, sticky=STICKY_ALL)
+#CONTROL_FRAME.columnconfigure(0, weight=1)
 
 CREATE_FRAME = tk.Frame(
-    master=CONTROL_FRAME,
+    master=WINDOW,
     borderwidth=5,
+#    bg='BLUE'
 )
-CREATE_FRAME.pack()
-CREATE_FRAME.columnconfigure([0, 1], minsize=200)
-CREATE_FRAME.columnconfigure(2, minsize=50)
+CREATE_FRAME.grid(column=1, row=1, rowspan=3, sticky=STICKY_ALL)
+CREATE_FRAME.columnconfigure([0, 2], weight=1)
+CREATE_FRAME.columnconfigure(1, weight=2)
+CREATE_FRAME.rowconfigure(list(range(8)), weight=1)#, minsize=10)
+CREATE_FRAME.rowconfigure(5, weight=40)
+CREATE_FRAME.rowconfigure(6, weight=40)
 
 
 CANVAS = tk.Canvas(master=PIXEL_FRAME, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-CANVAS.pack(side=tk.LEFT, expand=True)
+CANVAS.grid(column=0, row=0, sticky=STICKY_ALL)
 
 CANVAS_IMG = CANVAS.create_image((CANVAS_WIDTH//2,CANVAS_HEIGHT//2),anchor='center',image=PHOTO_IMG)
 PHOTO_IMG.paste(IMAGE.resize((CANVAS_WIDTH,CANVAS_HEIGHT)))
@@ -108,7 +124,7 @@ PHOTO_IMG.paste(IMAGE.resize((CANVAS_WIDTH,CANVAS_HEIGHT)))
 # options
 WIDTH_LABEL = tk.Label(
     master=OPTIONS_FRAME,
-    text='Width:'
+    text='Width:',
 )
 WIDTH_ENTRY = tk.Entry(
     master=OPTIONS_FRAME,
@@ -132,19 +148,17 @@ PX_SIZE_ENTRY = tk.Entry(
     master=OPTIONS_FRAME,
     width=5,
 )
-WIDTH_LABEL.grid(column=0, row=0)#, sticky=tk.E)
-WIDTH_ENTRY.grid(column=1, row=0)#, sticky=tk.W)
-HEIGHT_LABEL.grid(column=3, row=0)#, sticky=tk.E)
-HEIGHT_ENTRY.grid(column=4, row=0)#, sticky=tk.W)
-PX_SIZE_LABEL.grid(column=6, row=0)#, sticky=tk.E)
-PX_SIZE_ENTRY.grid(column=7, row=0)#, sticky=tk.W)
+WIDTH_LABEL.grid(column=4, row=0, sticky=tk.E)#, sticky=tk.E)
+WIDTH_ENTRY.grid(column=5, row=0, sticky=tk.W)#, sticky=tk.W)
+HEIGHT_LABEL.grid(column=6, row=0, sticky=tk.E)#, sticky=tk.E)
+HEIGHT_ENTRY.grid(column=7, row=0, sticky=tk.W)#, sticky=tk.W)
+PX_SIZE_LABEL.grid(column=8, row=0, sticky=tk.E)#, sticky=tk.E)
+PX_SIZE_ENTRY.grid(column=9, row=0, sticky=tk.W)#, sticky=tk.W)
 
 WIDTH_ENTRY.insert(0, str(WIDTH))
 HEIGHT_ENTRY.insert(0, str(HEIGHT))
 PX_SIZE_ENTRY.insert(0, str(PX_SIZE))
 
-for i in range(0,8):
-    OPTIONS_FRAME.columnconfigure(i, weight=1, minsize=24)
 
 def handle_update_options(event):
     global PX_SIZE, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT, PHOTO_IMG, CANVAS_IMG, IMAGE, DRAW, BG_PHOTO_IMAGE, CANVAS_BG_IMG
@@ -221,9 +235,9 @@ CLEAR_IMAGE_BUTTON = tk.Button(
     master=OPTIONS_FRAME,
     text='Clear',
 )
-OPEN_IMAGE_LABEL.grid(column=8, row=0)
-OPEN_IMAGE_BUTTON.grid(column=9, row=0)
-CLEAR_IMAGE_BUTTON.grid(column=10, row=0)
+OPEN_IMAGE_LABEL.grid(column=0, row=0, sticky=tk.E)
+OPEN_IMAGE_BUTTON.grid(column=1, row=0, sticky=tk.W+tk.E)
+CLEAR_IMAGE_BUTTON.grid(column=2, row=0, sticky=tk.W)
 OPEN_IMAGE_BUTTON.bind("<Button>", open_file_dialog)
 CLEAR_IMAGE_BUTTON.bind("<Button>", clear_image)
 
@@ -345,7 +359,7 @@ DELETE_BUTTON = tk.Button(
     background='lightgoldenrod1',
     activebackground='lightcoral',
 )
-DELETE_BUTTON.grid(column=1, row=3, sticky=tk.E)
+DELETE_BUTTON.grid(column=2, row=3, sticky=tk.E)
 DELETE_BUTTON.bind("<Button>", handle_delete_button)
 
 
@@ -366,7 +380,7 @@ DELETE_ALL_BUTTON = tk.Button(
     background='lightcoral',
     activebackground='red',
 )
-DELETE_ALL_BUTTON.grid(column=1, row=0, sticky=tk.E)
+DELETE_ALL_BUTTON.grid(column=2, row=0, sticky=tk.E)
 DELETE_ALL_BUTTON.bind("<Button>",handle_delete_all)
 
 
@@ -375,12 +389,12 @@ def handle_copy(event):
     WINDOW.clipboard_append(OUTPUT_BOX.get("1.0", tk.END))
 
 COPY_BUTTON = tk.Button(master=CREATE_FRAME, text='Copy output')
-COPY_BUTTON.grid(column=3, row=3, sticky=tk.E)
+COPY_BUTTON.grid(column=0, row=7, sticky=tk.S+tk.W)
 COPY_BUTTON.bind("<Button>", handle_copy)
 
 
-OUTPUT_BOX = tk.Text(master=CONTROL_FRAME)
-OUTPUT_BOX.pack()
+OUTPUT_BOX = tk.Text(master=CREATE_FRAME)
+OUTPUT_BOX.grid(column=0, row=6, columnspan=3, sticky=STICKY_ALL)
 
 
 
