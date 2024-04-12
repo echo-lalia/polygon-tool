@@ -37,6 +37,28 @@ OFFSET_Y = 0
 
 TRACE_ALPHA = 100
 
+PACKED_PREFIX = 'my_shape = '
+UNPACK_HINT = f"""
+# def unpack_shape(string):
+#     unpacked = (
+#         "shape=("
+#         + string.replace(
+#         'u', "{COORD_SUFFIX}),{UI_CLR_TEXT}"
+#         ).replace(
+#         'b', "{COORD_SUFFIX}),{BG_CLR_TEXT}"
+#         ).replace(
+#         'a', "({OFFSET_X},{OFFSET_Y},{COORD_PREFIX}("
+#         ).replace(
+#         't', ',True)'
+#         ).replace(
+#         'f', ',False)'
+#         )
+#         + ")"
+#         )
+#     exec(unpacked)
+#     return shape
+    """
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 DEFAULT_ACTION = {
     "name":"poly",
@@ -89,14 +111,6 @@ PIXEL_FRAME = tk.Frame(
 )
 PIXEL_FRAME.grid(column=0, row=2, rowspan=2)
 PIXEL_FRAME.columnconfigure(0, minsize=max(CANVAS_HEIGHT, CANVAS_WIDTH))
-
-# CONTROL_FRAME = tk.Frame(
-#     master=WINDOW,
-#     borderwidth=5,
-#     bg='BLUE'
-# )
-#CONTROL_FRAME.grid(column=1, row=1, rowspan=3, sticky=STICKY_ALL)
-#CONTROL_FRAME.columnconfigure(0, weight=1)
 
 CREATE_FRAME = tk.Frame(
     master=WINDOW,
@@ -153,7 +167,7 @@ WIDTH_ENTRY.grid(column=5, row=0, sticky=tk.W)#, sticky=tk.W)
 HEIGHT_LABEL.grid(column=6, row=0, sticky=tk.E)#, sticky=tk.E)
 HEIGHT_ENTRY.grid(column=7, row=0, sticky=tk.W)#, sticky=tk.W)
 PX_SIZE_LABEL.grid(column=8, row=0, sticky=tk.E)#, sticky=tk.E)
-PX_SIZE_ENTRY.grid(column=9, row=0, sticky=tk.W)#, sticky=tk.W)
+PX_SIZE_ENTRY.grid(column=9, row=0, sticky=tk.W)#, sticky=tk.W)o
 
 WIDTH_ENTRY.insert(0, str(WIDTH))
 HEIGHT_ENTRY.insert(0, str(HEIGHT))
@@ -392,6 +406,42 @@ COPY_BUTTON = tk.Button(master=CREATE_FRAME, text='Copy output')
 COPY_BUTTON.grid(column=0, row=7, sticky=tk.S+tk.W)
 COPY_BUTTON.bind("<Button>", handle_copy)
 
+def handle_pack(event):
+    # print compact output string which uses less memory, but must be unpacked to be used.
+    output = ''
+
+    shape = TOTAL_SHAPE + [CURRENT_ACTION]
+    for item in shape:
+        if item['coords']:
+            
+            clr_txt = 'u' if item['color'] == UI_COLOR else 'b'
+            
+            coords_txt = 'a' + str(item['coords']).replace('[','(').replace(']',')').replace(' ','')
+
+            output += f"{coords_txt}, {clr_txt}, {item['fill']},"
+    
+    
+    output = output.replace(
+        ' ',''
+    ).replace(
+        ',False','f'
+    ).replace(
+        ',True','t'
+    ).replace(
+        '),u','u'
+    ).replace(
+        '),b','b'
+    ).replace(
+        'a(','a'
+    )
+
+    output = PACKED_PREFIX + '"' + output + '"' + '\n\n\n\n' + UNPACK_HINT
+    gui_print(output)
+    
+PACK_BUTTON = tk.Button(master=CREATE_FRAME, text='Pack output')
+PACK_BUTTON.grid(column=2, row=7, sticky=tk.S+tk.E)
+PACK_BUTTON.bind("<Button>", handle_pack)
+
 
 OUTPUT_BOX = tk.Text(master=CREATE_FRAME)
 OUTPUT_BOX.grid(column=0, row=6, columnspan=3, sticky=STICKY_ALL)
@@ -429,7 +479,14 @@ def gui_print(text):
     OUTPUT_BOX.delete("1.0", tk.END)
     OUTPUT_BOX.insert("1.0", text)
 
+
+
+
+
+
 def format_print_shape():
+    # print readable output str
+
     output = OUTPUT_PREFIX
 
     shape = TOTAL_SHAPE + [CURRENT_ACTION]
@@ -446,6 +503,8 @@ def format_print_shape():
     output += OUTPUT_SUFFIX
 
     gui_print(output)
+
+
 
 def click_handler(event):
     global DRAW
@@ -466,23 +525,7 @@ def add_to_polygon(event):
     y = int((event.y / PX_SIZE ))
     CURRENT_ACTION['coords'] += [x,y]
 
-# def add_line_at_mouse(event):
-#     x = int((event.x / PX_SIZE))
-#     y = int((event.y / PX_SIZE ))
 
-#     if not POLYCOORDS:
-#         POLYCOORDS.append([(x,y)])
-#     elif len(POLYCOORDS[-1]) == 1:
-#         POLYCOORDS[-1].append((x,y))
-#     else:
-#         POLYCOORDS.append([(x,y)])
-
-#     DRAW.point((x,y), fill=0)
-
-# def draw_lines():
-#     for line in POLYCOORDS:
-#         if len(line) == 2:
-#             DRAW.line(line, fill=0)
 
 def draw_image_on_canvas():
     global IMAGE, CANVAS, PHOTO_IMG
