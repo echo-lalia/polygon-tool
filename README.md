@@ -14,3 +14,9 @@ The GUI includes a few simple config options, but there are more options at the 
 ### Usage:
 Install Python3, Pillow, and Tkinter. if they arent already.   
 Run the script!
+
+This tool also includes a function to "pack" a shape definition into a condensed string to further save memory. 
+The string can be 'unpacked' by the program when needed, and converted into an object using string replacement, and the 'exec' command. (an example unpack function is provided with the output when you pack your shape).
+
+In case you're curious, the packed strings use significantly less memory than a bitmap of the icon, from my testing. 
+It would also absolutely be possible to 'compress' the strings further and use even less memory, however, I tried keeping it simple to prevent the unpack operation from being too slow. 
