@@ -86,6 +86,9 @@ CANVAS_IMG = None
 PHOTO_IMG = ImageTk.PhotoImage(image='RGB', size=(CANVAS_WIDTH,CANVAS_HEIGHT))
 DRAW = ImageDraw.Draw(IMAGE)
 
+THUMBNAIL_CANVAS = None
+THUMBNAIL_PHOTO_IMG = ImageTk.PhotoImage(image='RGB', size=(WIDTH,HEIGHT))
+
 BG_IMAGE = None
 BG_PHOTO_IMAGE = None
 CANVAS_BG_IMG = None
@@ -124,6 +127,11 @@ CREATE_FRAME.rowconfigure(list(range(8)), weight=1)#, minsize=10)
 CREATE_FRAME.rowconfigure(5, weight=40)
 CREATE_FRAME.rowconfigure(6, weight=40)
 
+
+THUMBNAIL_CANVAS = tk.Canvas(master=WINDOW, width=WIDTH, height=HEIGHT)
+THUMBNAIL_CANVAS.grid(column=0, row=1, sticky=STICKY_ALL)
+THUMBNAIL_CANVAS_IMG = THUMBNAIL_CANVAS.create_image((0,0),anchor='nw',image=THUMBNAIL_PHOTO_IMG)
+THUMBNAIL_PHOTO_IMG.paste(IMAGE)
 
 CANVAS = tk.Canvas(master=PIXEL_FRAME, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
 CANVAS.grid(column=0, row=0, sticky=STICKY_ALL)
@@ -175,7 +183,7 @@ PX_SIZE_ENTRY.insert(0, str(PX_SIZE))
 
 
 def handle_update_options(event):
-    global PX_SIZE, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT, PHOTO_IMG, CANVAS_IMG, IMAGE, DRAW, BG_PHOTO_IMAGE, CANVAS_BG_IMG
+    global PX_SIZE, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT, PHOTO_IMG, CANVAS_IMG, IMAGE, DRAW, BG_PHOTO_IMAGE, CANVAS_BG_IMG, THUMBNAIL_CANVAS_IMG, THUMBNAIL_PHOTO_IMG
     if event.keysym == 'Return':
         try:
             PX_SIZE = int(PX_SIZE_ENTRY.get())
@@ -205,6 +213,12 @@ def handle_update_options(event):
 
     IMAGE = IMAGE.resize((WIDTH, HEIGHT))
     DRAW = ImageDraw.Draw(IMAGE)
+
+    
+    THUMBNAIL_PHOTO_IMG = ImageTk.PhotoImage(image='RGB', size=(WIDTH,HEIGHT))
+    THUMBNAIL_CANVAS_IMG = THUMBNAIL_CANVAS.create_image((0,0),anchor='nw',image=THUMBNAIL_PHOTO_IMG)
+    THUMBNAIL_PHOTO_IMG.paste(IMAGE)
+    THUMBNAIL_CANVAS.config(width=WIDTH, height=HEIGHT)
 
     PHOTO_IMG = ImageTk.PhotoImage(image='RGB', size=(CANVAS_WIDTH,CANVAS_HEIGHT))
     CANVAS_IMG = CANVAS.create_image((CANVAS_WIDTH//2,CANVAS_HEIGHT//2),anchor='center',image=PHOTO_IMG)
@@ -369,14 +383,34 @@ def handle_delete_button(event):
 
 DELETE_BUTTON = tk.Button(
     master=CREATE_FRAME,
-    text='Delete last item',
+    text='Delete last polygon',
     background='lightgoldenrod1',
     activebackground='lightcoral',
 )
-DELETE_BUTTON.grid(column=2, row=3, sticky=tk.E)
+DELETE_BUTTON.grid(column=2, row=2, sticky=tk.E)
 DELETE_BUTTON.bind("<Button>", handle_delete_button)
 
+def handle_delete_point(event):
+    global CURRENT_ACTION, TOTAL_SHAPE
 
+    if TOTAL_SHAPE and not CURRENT_ACTION['coords']:
+        TOTAL_SHAPE[-1]['coords'].pop(-1)
+        TOTAL_SHAPE[-1]['coords'].pop(-1)
+        
+    elif CURRENT_ACTION['coords']:
+        CURRENT_ACTION['coords'].pop(-1)
+        CURRENT_ACTION['coords'].pop(-1)
+
+    draw_image_on_canvas()
+    format_print_shape()
+DELETE_POINT_BUTTON = tk.Button(
+    master=CREATE_FRAME,
+    text='Delete last point',
+    background='lightgoldenrod1',
+    activebackground='lightcoral',
+)
+DELETE_POINT_BUTTON.grid(column=2, row=3, sticky=tk.E)
+DELETE_POINT_BUTTON.bind("<Button>", handle_delete_point)
 
 def handle_delete_all(event):
     global CURRENT_ACTION, TOTAL_SHAPE
@@ -543,7 +577,7 @@ def draw_image_on_canvas():
                     fill= item['color'] if item['fill'] else None,
                     outline= item['color']
             )
-
+    THUMBNAIL_PHOTO_IMG.paste(IMAGE)
 
     img = Image.new('RGBA', (CANVAS_WIDTH, CANVAS_HEIGHT))
     img.paste(IMAGE.resize((CANVAS_WIDTH, CANVAS_HEIGHT)))
